@@ -44,8 +44,8 @@ default_config = {
 legacy_values = {
     'offer_disk_encryption': ('disk_encryption',
                               True,
-                              {'offered': True, 'forced': False, 'min_length': 1},
-                              {'offered': False, 'forced': False, 'min_length': 1}),
+                              {'offered': True, 'forced': False, 'min_length': 1, 'confirmation': False},
+                              {'offered': False, 'forced': False, 'min_length': 1, 'confirmation': False}),
 }
 
 # not configurable via config file
