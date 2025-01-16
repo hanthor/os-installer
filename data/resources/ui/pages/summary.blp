@@ -38,6 +38,7 @@ template $SummaryPage : Box {
     Adw.ActionRow user_row {
       name: "user";
       activatable: true;
+      visible: false;
       /* Translators: Description of defined user account name and autologin status. */
       title: _("User Account");
       styles ["property"]
@@ -61,6 +62,7 @@ template $SummaryPage : Box {
     Adw.ActionRow format_row {
       name: "format";
       activatable: true;
+      visible: false;
       /* Translators: Description of selected format. */
       title: _("Formats");
       styles ["property"]
@@ -73,6 +75,7 @@ template $SummaryPage : Box {
     Adw.ActionRow timezone_row {
       name: "timezone";
       activatable: true;
+      visible: false;
       /* Translators: Description of selected timezone. */
       title: _("Timezone");
       styles ["property"]
@@ -86,6 +89,7 @@ template $SummaryPage : Box {
       margin-top: 6;
       name: "software";
       activatable: true;
+      visible: false;
 
       [prefix]
       Box {
@@ -135,6 +139,7 @@ template $SummaryPage : Box {
     Adw.ActionRow feature_row {
       name: "feature";
       activatable: true;
+      visible: false;
       /* Translators: Description of selected additional software. */
 
       [prefix]
