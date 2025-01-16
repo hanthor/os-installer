@@ -161,7 +161,18 @@ class Config:
         GIGABYTE_FACTOR = 1000 * 1000 * 1000
         self.variables['minimum_disk_size'] *= GIGABYTE_FACTOR
 
+    def _update_subscribers(self, variable, new_value):
+        subscribers = []
+        with self.subscription_lock:
+            if variable in self.subscriptions:
+                subscribers = self.subscriptions[variable]
+        for func in subscribers:
+            func(new_value)
+
     ### public methods ###
+
+    def bump(self, variable):
+        self._update_subscribers(variable, self.get(variable))
 
     def get(self, variable):
         if variable in self.variables:
@@ -182,12 +193,7 @@ class Config:
 
         self.variables[variable] = new_value
 
-        subscribers = []
-        with self.subscription_lock:
-            if variable in self.subscriptions:
-                subscribers = self.subscriptions[variable]
-        for func in subscribers:
-            func(new_value)
+        self._update_subscribers(variable, new_value)
 
         return True
 
