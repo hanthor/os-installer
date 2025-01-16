@@ -19,10 +19,11 @@ class InstallPage(Gtk.Box):
         # UI element states
         self.terminal_box.append(installation_scripting.terminal)
         self.stack.set_visible_child_name('spinner')
-        config.subscribe('installation_running', self._installation_done)
+        config.subscribe('installation_running', self._installation_done, delayed=True)
 
-    def _installation_done(self, _):
-        self.terminal_box.remove(installation_scripting.terminal)
+    def _installation_done(self, running):
+        if not running:
+            self.terminal_box.remove(installation_scripting.terminal)
 
     ### callbacks ###
 
