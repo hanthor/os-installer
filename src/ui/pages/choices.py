@@ -25,8 +25,10 @@ class ChoicesPage(Gtk.Box):
 
         match choice_type:
             case ChoiceType.feature:
+                self.config_key = 'feature_choices'
                 self.list_provider = choices_provider.get_feature_suggestions
             case ChoiceType.software:
+                self.config_key = 'software_choices'
                 self.list_provider = choices_provider.get_software_suggestions
             case _:
                 print("Unknown choice type!")
@@ -48,9 +50,11 @@ class ChoicesPage(Gtk.Box):
 
     def _option_chosen(self, row, _):
         row.update_choice()
+        config.bump(self.config_key)
 
     def _switch_flipped(self, row):
         row.flip_switch()
+        config.bump(self.config_key)
 
     @Gtk.Template.Callback('continue')
     def _continue(self, button):
