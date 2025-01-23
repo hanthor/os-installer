@@ -104,6 +104,7 @@ def _match(variables, var, *ok_types):
 
 
 def _validate_scripts(variables):
+    print(f" in demo mode variables.get('demo_mode', 'nope')")
     scripts = variables.get('scripts', None)
     if (not _match(variables, 'scripts', dict) or
             (scripts['install'] is None and scripts['configure'] is None)):

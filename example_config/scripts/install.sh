@@ -24,6 +24,9 @@ then
     exit 1
 fi
 
+# dummy line only for debugging, no need to have in actual scripts
+echo install > /tmp/osi-state
+
 echo 'Installation started.'
 echo ''
 echo 'Variables set to:'
@@ -40,7 +43,7 @@ echo ''
 # Pretending to do something
 echo 'Pretending to do something'
 
-for i in {1..20}
+for i in {1..2}
 do
     sleep 1
     echo -n '.'

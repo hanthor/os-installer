@@ -34,6 +34,10 @@ then
     exit 1
 fi
 
+# dummy line only for debugging, no need to have in actual scripts
+echo configure > /tmp/osi-state
+
+
 echo 'Configuration started.'
 echo ''
 echo 'Variables set to:'
@@ -58,7 +62,7 @@ echo ''
 # Pretending to do something
 echo 'Pretending to do something'
 
-for i in {1..5}
+for i in {1..10}
 do
     sleep 1
     echo -n '.'

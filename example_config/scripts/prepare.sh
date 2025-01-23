@@ -5,6 +5,9 @@
 # called once an internet connection is established, otherwise it's called
 # immediately.
 
+# dummy line only for debugging, no need to have in actual scripts
+echo prepare > /tmp/osi-state
+
 echo 'Preparation started.'
 
 # Pretending to do something
