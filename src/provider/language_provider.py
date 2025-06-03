@@ -70,7 +70,7 @@ class LanguageProvider(Preloadable):
         if language in language_to_default_locale:
             return language_to_default_locale[language]
         else:
-            return None
+            return "C"
 
     def _get_existing_translations(self, localedir):
         # English always exists
