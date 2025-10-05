@@ -63,6 +63,7 @@ class LanguageProvider(Preloadable):
 
         future = self.thread_pool.submit(self._determine_fixed_language)
         config.set('language_use_fixed', future)
+        config.subscribe('')
 
     def _determine_fixed_language(self):
         fixed_language = config.get('fixed_language')

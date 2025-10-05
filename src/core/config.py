@@ -1,11 +1,10 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from concurrent.futures import Future
 import sys
 from threading import Lock
+import traceback
 import yaml
-
-DEFAULT_CONFIG_PATH = '/etc/os-installer/config.yaml'
-
 
 default_config = {
     # general
@@ -117,7 +116,6 @@ def _validate(variables):
     assert not variables['fixed_language'] == True, 'Need to specify or disable fixed language.'
 
     return (
-        _validate_scripts(variables) and
         _match(variables, 'welcome_page', dict) and
         _match(variables['welcome_page'], 'usage', bool) and
         _match(variables['welcome_page'], 'logo', str, type(None)) and
@@ -206,11 +204,21 @@ class Config:
     ### public methods ###
 
     def bump(self, variable):
+        if not self.initialized:
+            traceback.print_stack()
+            print('Uh oh')
         self._update_subscribers(variable, self.get(variable))
 
     def get(self, variable):
+        if not self.initialized:
+            traceback.print_stack()
+            print('Uh oh')
         if variable in self.variables:
-            return self.variables[variable]
+            value = self.variables[variable]
+            if isinstance(value, Future):
+                value = value.result()
+                self.variables[variable] = value
+            return value
         elif variable in fallback_values:
             return fallback_values[variable]
         else:
@@ -218,9 +226,38 @@ class Config:
             return None
 
     def has(self, variable):
+        if not self.initialized:
+            traceback.print_stack()
+            print('Uh oh')
         return variable in self.variables
 
+    def init(self, config_path, demo_mode, test_mode):
+        try:
+            with open(config_path, 'r') as file:
+                self._load_from_file(file)
+        except Exception as e:
+            print(f'Error loading config: {e}. Check if the config contains '
+                  'syntax errors.')
+            self.variables = default_config
+        if not _validate(self.variables):
+            print('Config errors, loading default config.')
+            self.variables = default_config
+
+        self.variables.set('demo_mode', demo_mode)
+        self.variables.set('test_mode', test_mode)
+
+        if not _validate(self.variables):
+            print('Config errors, loading default config.')
+            self.variables = default_config
+
+        self.variables.update(internal_values)
+        self._preprocess_values()
+        self.initialized = True
+
     def set(self, variable, new_value):
+        if not self.initialized:
+            traceback.print_stack()
+            print('Uh oh')
         '''Returns whether config was changed.'''
         if self.variables.get(variable, None) == new_value:
             return False
@@ -232,15 +269,24 @@ class Config:
         return True
 
     def set_next_page(self, page):
+        if not self.initialized:
+            traceback.print_stack()
+            print('Uh oh')
         '''Convenience function'''
         self.set('displayed-page', ('next', page))
         return False
 
     def steal(self, variable):
+        if not self.initialized:
+            traceback.print_stack()
+            print('Uh oh')
         if variable in self.variables:
             return self.variables.pop(variable)
 
     def subscribe(self, variable, func, delayed=False):
+        if not self.initialized and not delayed:
+            traceback.print_stack()
+            print('Uh oh')
         with self.subscription_lock:
             if variable in self.subscriptions:
                 self.subscriptions[variable].append(func)
@@ -254,11 +300,24 @@ class Config:
             print(f'subscribing to unknown variable {variable}')
 
     def unsubscribe(self, obj):
+        if not self.initialized:
+            traceback.print_stack()
+            print('Uh oh')
         with self.subscription_lock:
             for subs in self.subscriptions.values():
                 for func in subs:
                     if hasattr(func, '__self__') and func.__self__ == obj:
                         subs.remove(func)
+
+    def validate_scripts(self):
+        scripts = self.variables.get('scripts', None)
+        if (not _match(self.variables, 'scripts', dict) or
+                (scripts['install'] is None and scripts['configure'] is None)):
+            print('Config error: Either install or configure script must be set')
+            print('  To start configuring the installer you can copy the example folder:')
+            print('    sudo cp -R example_config /etc/os-installer')
+            print('  Continuing in demo mode')
+            self.set('demo_mode', True)
 
 
 config = Config()
