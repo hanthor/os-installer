@@ -151,19 +151,7 @@ class Config:
         self.variables = default_config
         self.subscription_lock = Lock()
         self.subscriptions = {}
-
-        try:
-            with open(DEFAULT_CONFIG_PATH, 'r') as file:
-                self._load_from_file(file)
-        except Exception as e:
-            print(f'Error loading config: {e}. Check if the config contains '
-                  'syntax errors.')
-            self.variables = default_config
-        if not _validate(self.variables):
-            print('Config errors, loading default config.')
-            self.variables = default_config
-        self.variables.update(internal_values)
-        self._preprocess_values()
+        self.initialized = False
 
     def _load_from_file(self, file):
         config_from_file = yaml.load(file, Loader=yaml.Loader)
