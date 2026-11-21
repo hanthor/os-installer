@@ -33,6 +33,10 @@ set -euo pipefail
 if [[ ${EUID} -ne 0 ]]; then
     exec sudo -n --preserve-env=OSI_DEVICE_PATH,OSI_DEVICE_IS_PARTITION,OSI_USE_ENCRYPTION,OSI_ENCRYPTION_PIN,UTAH_INSTALL_NO_NVRAM "$0" "$@"
 fi
+# OS-Installer shows this output in its terminal view; keep a copy for support.
+exec > >(tee -a /run/utah-install.log) 2>&1
+install_start=$(date +%s)
+printf '==> %s Utah install started\n' "$(date -Is)"
 
 log() { printf '==> %s\n' "$*"; }
 fail() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
@@ -274,4 +278,4 @@ if [[ -n "${shim}" && -d /sys/firmware/efi/efivars && -z "${UTAH_INSTALL_NO_NVRA
         --loader "$(tr / '\\' <<<"${shim}")" >/dev/null
     log "firmware boot entry: Utah -> ${shim}"
 fi
-log "Utah installed to ${target}"
+log "Utah installed to ${target} in $(( $(date +%s) - install_start ))s"
