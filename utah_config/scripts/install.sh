@@ -202,7 +202,12 @@ if [[ -n "${boot}" ]]; then
 fi
 [[ -n "${esp}" ]] && mount "${esp}" "${work}/mnt/efi"
 
-mapfile -t deployments < <(find "${work}/mnt/root/ostree/deploy" -mindepth 3 -maxdepth 3 -type d -path '*/deploy/*' ! -name '*.origin')
+# <stateroot>/deploy/<checksum>.<serial>; a find on '*/deploy/*' would also
+# match <stateroot>/var/* through the ostree/deploy prefix.
+deployments=()
+for d in "${work}"/mnt/root/ostree/deploy/*/deploy/*; do
+    [[ -d "$d" ]] && deployments+=("$d")
+done
 [[ ${#deployments[@]} -ge 1 ]] || fail "no ostree deployment on the copied root"
 for d in "${deployments[@]}"; do
     mid="$(cat "$d/etc/machine-id" 2>/dev/null || true)"

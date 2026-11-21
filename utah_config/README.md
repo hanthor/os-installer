@@ -5,8 +5,8 @@ This directory is an OS-Installer distribution config for
 replaces Utah's bootc-installer/fisherman install path with a GNOME OS-style
 one:
 
-- The live medium **is** the shipped bootc disk image (`bootc install to-disk`
-  at build time). It boots with `ro utah.live`; an initrd unit puts a tmpfs overlay over the root, so the
+- The live medium **is** the shipped bootc disk image (`bootc install
+  to-filesystem` at build time). It boots with `ro utah.live`; an initrd unit puts a tmpfs overlay over the root, so the
   session writes to a tmpfs overlay and the medium's partitions stay pristine.
 - `scripts/install.sh` block-copies those partitions to the chosen disk with
   `systemd-repart` (`CopyBlocks=`, optionally into LUKS2 with
@@ -19,20 +19,29 @@ one:
 
 ## Layout on the live medium
 
+The Utah spike installs this directory as `/usr/share/utah/os-installer/` and
+starts `os-installer --config /usr/share/utah/os-installer/config.yaml` from a
+live-only autostart entry. OS-Installer resolves `scripts/install.sh` and the
+welcome logo relative to the config's directory.
+
 ```
-/etc/os-installer/config.yaml
-/etc/os-installer/utahraptor.png
-/etc/os-installer/scripts/install.sh
+/usr/share/utah/os-installer/config.yaml
+/usr/share/utah/os-installer/utahraptor.png
+/usr/share/utah/os-installer/scripts/install.sh
 ```
 
 The live session runs `os-installer` as the autologin live user. The install
 script re-executes itself through `sudo -n`, which the live overlay allows for
 that user only.
 
+The medium needs `/boot` on its own partition (ESP + ext4 `/boot` + btrfs
+root): the script encrypts only the root, and GRUB cannot unlock
+systemd-repart's LUKS2 (argon2id) to read a `/boot` inside it.
+
 ## Running the script without the GUI
 
 ```
 sudo OSI_DEVICE_PATH=/dev/vdb OSI_DEVICE_IS_PARTITION=0 \
      OSI_USE_ENCRYPTION=1 OSI_ENCRYPTION_PIN=... \
-     /etc/os-installer/scripts/install.sh
+     /usr/share/utah/os-installer/scripts/install.sh
 ```
