@@ -1,0 +1,55 @@
+%YAML 1.2
+---
+# OS-Installer configuration for Utah (projectbluefin/utah) live media.
+#
+# Experimental: Utah's GNOME OS-style install path. The live session boots the
+# shipped bootc disk image with a tmpfs overlay (`utah.live
+# systemd.volatile=overlay`); scripts/install.sh block-copies that image to the
+# chosen disk with systemd-repart and fixes up its identity. No `bootc install`
+# runs at install time; bootc keeps handling updates afterwards.
+#
+# Install to /etc/os-installer/ on the live medium (see utah_config/README.md).
+
+distribution_name: 'Utah'
+
+# Only an install phase: the image is complete, so there is nothing to
+# configure from the installer. gnome-initial-setup creates the user and sets
+# region/time zone on first boot.
+scripts:
+  install: scripts/install.sh
+
+# Offline install: the payload is the medium itself.
+internet:
+  connection_required: no
+
+welcome_page:
+  logo    : 'utahraptor.png'
+  text    : 'Install Utah by copying this live system onto a disk. Your account is created on first boot.'
+  usage   : yes
+
+# Whole disks only: the copied partition table replaces the target's. The
+# minimum covers the medium's ESP, /boot and root plus room to grow.
+disk:
+  partition_ok: no
+  min_size: 32
+
+# LUKS2 on the root partition (systemd-repart Encrypt=key-file), unlocked by
+# passphrase in Plymouth. TPM2 enrollment is an open decision (see the spike
+# report), so it is not offered yet.
+disk_encryption:
+  offered: yes
+  forced: no
+  generated: no
+  min_length: 8
+  confirmation: yes
+
+skip_region: yes
+skip_user: yes
+
+failure_help_url: 'https://github.com/projectbluefin/utah/issues?q="os-installer {}"'
+
+commands:
+  browser: 'xdg-open'
+  disks  : 'gnome-disks'
+  reboot : 'systemctl reboot'
+  wifi   : 'gnome-control-center wifi'
