@@ -43,6 +43,15 @@ class DiskProvider(Preloadable):
         modules = GLib.Variant('as', ['lvm2'])
         manager.call_enable_modules_sync(modules, None)
 
+        # A libudisks2 built without the LVM2 module (Dakota) lacks the LVM2
+        # interface types that the UDisks typelib still lists; using them
+        # raises TypeError ("must be an interface"). Skip LVM2 there.
+        try:
+            UDisks.BlockLVM2, UDisks.PhysicalVolume, UDisks.LogicalVolume
+            self.has_lvm2 = True
+        except TypeError:
+            self.has_lvm2 = False
+
         config.set('min_disk_size_str', self._disk_size_to_str(min_disk_size))
 
     def _disk_size_to_str(self, size):
@@ -148,7 +157,7 @@ class DiskProvider(Preloadable):
 
         # Second pass: handle LVM
         vg_mount_map = {}
-        for device, udisks_object in filtered_devices:
+        for device, udisks_object in filtered_devices if self.has_lvm2 else ():
             if not (block_lvm2 := udisks_object.get_block_lvm2()):
                 continue
 
@@ -169,8 +178,8 @@ class DiskProvider(Preloadable):
                 vg_mount_map[vg_path] = []
             vg_mount_map[vg_path].extend(mount_map[device].mount_points)
 
-        # Propagate VG mount points to PVs
-        for device in devices:
+        # Propagate VG mount points to PVs (nothing to do without any)
+        for device in devices if vg_mount_map else ():
             if not (udisks_object := self.udisks_client.get_object(device)):
                 continue
 
