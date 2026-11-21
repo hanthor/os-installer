@@ -2,7 +2,7 @@
 # Utah install script for OS-Installer: GNOME OS-style "copy the image" install.
 #
 # The live session runs from the very disk image it installs: a bootc
-# `install to-disk` image booted with `utah.live systemd.volatile=overlay ro`,
+# `install to-disk` image booted with `ro utah.live` (an initrd tmpfs overlay over its root),
 # so every write lands in a tmpfs overlay and the medium's partitions stay
 # byte-for-byte what the build produced. Installing is therefore a block copy
 # of those partitions (systemd-repart CopyBlocks=, optionally into LUKS2),

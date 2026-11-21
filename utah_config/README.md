@@ -6,7 +6,7 @@ replaces Utah's bootc-installer/fisherman install path with a GNOME OS-style
 one:
 
 - The live medium **is** the shipped bootc disk image (`bootc install to-disk`
-  at build time). It boots with `utah.live systemd.volatile=overlay ro`, so the
+  at build time). It boots with `ro utah.live`; an initrd unit puts a tmpfs overlay over the root, so the
   session writes to a tmpfs overlay and the medium's partitions stay pristine.
 - `scripts/install.sh` block-copies those partitions to the chosen disk with
   `systemd-repart` (`CopyBlocks=`, optionally into LUKS2 with

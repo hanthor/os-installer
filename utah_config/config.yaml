@@ -3,8 +3,8 @@
 # OS-Installer configuration for Utah (projectbluefin/utah) live media.
 #
 # Experimental: Utah's GNOME OS-style install path. The live session boots the
-# shipped bootc disk image with a tmpfs overlay (`utah.live
-# systemd.volatile=overlay`); scripts/install.sh block-copies that image to the
+# shipped bootc disk image with `ro utah.live`, which overlays its root with
+# tmpfs in the initrd; scripts/install.sh block-copies that image to the
 # chosen disk with systemd-repart and fixes up its identity. No `bootc install`
 # runs at install time; bootc keeps handling updates afterwards.
 #
