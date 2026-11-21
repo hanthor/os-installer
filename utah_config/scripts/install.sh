@@ -9,18 +9,25 @@
 # followed by the per-machine fixups a raw copy cannot get right by itself:
 #
 #   * new filesystem UUIDs/serials (the live medium may stay plugged in), and
-#     every boot-config reference to the old ones rewritten (BLS entries,
-#     bootupd's GRUB configs, the deployment's /etc/fstab);
+#     every boot-config reference to the old ones rewritten (BLS entries and
+#     their systemd.mount-extra /boot karg, bootupd's GRUB configs, the
+#     deployment's /etc/fstab);
 #   * the live boot entry and its GRUB default removed, so the installed system
 #     never boots with utah.live;
-#   * rd.luks.uuid on the ostree BLS entries and an /etc/crypttab line when the
+#   * rd.luks.uuid on the deployment's BLS entries and an /etc/crypttab line when the
 #     root is encrypted;
 #   * the root filesystem grown to the partition;
 #   * a firmware boot entry for shim on UEFI machines.
 #
-# The ostree deployment, its origin (container-image-reference), SELinux labels
-# and the empty /etc/machine-id are part of the copied blocks, so bootc
-# status/upgrade/switch/rollback work unchanged on the installed disk.
+# The deployment, its origin (container-image-reference), SELinux labels and
+# the empty /etc/machine-id are part of the copied blocks, so bootc
+# status/upgrade/switch/rollback work unchanged on the installed disk. Both
+# bootc backends are handled: ostree (/ostree/deploy/<stateroot>/deploy/<id>)
+# and composefs (/composefs repository, /state/deploy/<verity digest> with the
+# deployment's etc and origin, BLS entries with a composefs= karg). A raw copy
+# keeps composefs's fs-verity: it lives in the btrfs metadata that the copy
+# carries and that btrfstune -u only re-stamps. The installed entries keep the
+# strict composefs= karg; only the removed live entry relaxed it.
 #
 # User creation is deliberately absent: gnome-initial-setup runs on first boot
 # (config.yaml skip_user/skip_region).
@@ -202,13 +209,15 @@ if [[ -n "${boot}" ]]; then
 fi
 [[ -n "${esp}" ]] && mount "${esp}" "${work}/mnt/efi"
 
-# <stateroot>/deploy/<checksum>.<serial>; a find on '*/deploy/*' would also
-# match <stateroot>/var/* through the ostree/deploy prefix.
+# ostree: <stateroot>/deploy/<checksum>.<serial> (a find on '*/deploy/*' would
+# also match <stateroot>/var/* through the ostree/deploy prefix). composefs:
+# state/deploy/<verity digest>, holding the deployment's etc/ and .origin.
 deployments=()
-for d in "${work}"/mnt/root/ostree/deploy/*/deploy/*; do
-    [[ -d "$d" ]] && deployments+=("$d")
+for d in "${work}"/mnt/root/ostree/deploy/*/deploy/* "${work}"/mnt/root/state/deploy/*; do
+    [[ -d "$d/etc" ]] && deployments+=("$d")
 done
-[[ ${#deployments[@]} -ge 1 ]] || fail "no ostree deployment on the copied root"
+[[ ${#deployments[@]} -ge 1 ]] || fail "no ostree or composefs deployment on the copied root"
+log "deployments: ${deployments[*]#"${work}"/mnt/root/}"
 for d in "${deployments[@]}"; do
     mid="$(cat "$d/etc/machine-id" 2>/dev/null || true)"
     [[ -z "${mid}" || "${mid}" == uninitialized ]] || fail "the medium carries a machine-id (${mid}); it was booted read-write and is not pristine"
