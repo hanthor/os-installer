@@ -2,10 +2,12 @@
 > [p3732/os-installer](https://gitlab.gnome.org/p3732/os-installer) on GNOME
 > GitLab, history included (GPL-3.0-or-later). `main` and the tags track
 > upstream unchanged. The `utah` branch (the default here) adds
-> [`utah_config/`](utah_config/), an experimental OS-Installer config for
-> [projectbluefin/utah](https://github.com/projectbluefin/utah) that installs by
-> block-copying the live disk image. Send changes to OS-Installer itself
-> upstream, not here.
+> [`utah_config/`](utah_config/) and [`dakota_config/`](dakota_config/),
+> experimental OS-Installer configs for
+> [projectbluefin/utah](https://github.com/projectbluefin/utah) and
+> [projectbluefin/dakota](https://github.com/projectbluefin/dakota) that
+> install by block-copying the live disk image with one shared script. Send
+> changes to OS-Installer itself upstream, not here.
 
 A simple operating system installer, intended to be used with live install systems.
 It provides a GNOME Adwaita-style interface for:
