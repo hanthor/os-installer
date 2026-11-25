@@ -391,6 +391,29 @@ class VariableStoreTest(ConfigTestCase):
         self.assertEqual(gone.seen, [])
         self.assertEqual(kept.seen, ["Asia/Tokyo"])
 
+    # Config.unsubscribe removes from the list it is iterating, so the second of
+    # two methods bound to one object is skipped (issue #6). Drop the decorator
+    # when the production loop is fixed; it then fails loudly as an unexpected
+    # success, which is the reminder to do so.
+    @unittest.expectedFailure
+    def test_unsubscribe_removes_every_method_of_the_object(self):
+        class Listener:
+            def __init__(self):
+                self.seen = []
+
+            def first(self, value):
+                self.seen.append(("first", value))
+
+            def second(self, value):
+                self.seen.append(("second", value))
+
+        gone = Listener()
+        self.cfg.subscribe("timezone", gone.first, delayed=True)
+        self.cfg.subscribe("timezone", gone.second, delayed=True)
+        self.cfg.unsubscribe(gone)
+        self.cfg.set("timezone", "Asia/Tokyo")
+        self.assertEqual(gone.seen, [])
+
     def test_unsubscribe_ignores_plain_functions(self):
         seen = []
         self.cfg.subscribe("timezone", seen.append, delayed=True)
