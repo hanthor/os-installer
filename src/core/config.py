@@ -326,7 +326,9 @@ class Config:
     def unsubscribe(self, obj):
         with self.subscription_lock:
             for subs in self.subscriptions.values():
-                for func in subs:
+                # Iterate over a snapshot: removing from `subs` while iterating
+                # it skips the next entry, so a second method of `obj` survives.
+                for func in list(subs):
                     if hasattr(func, '__self__') and func.__self__ == obj:
                         subs.remove(func)
 
